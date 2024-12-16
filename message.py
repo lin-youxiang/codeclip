@@ -6,16 +6,16 @@ import pyperclip
 from pathlib import Path
 
 def get_latest_message_text(db_path):
-    # 连接数据库（只读）
-    # 使用 uri 模式打开只读连接： "file:{}?mode=ro"
-    # 参考: https://sqlite.org/c3ref/open.html
+    # Connect to database (read-only)
+    # Use URI mode to open read-only connection: "file:{}?mode=ro"
+    # Reference: https://sqlite.org/c3ref/open.html
     uri = f"file:{db_path}?mode=ro"
     conn = sqlite3.connect(uri, uri=True)
     cursor = conn.cursor()
     
-    # message 表通常包含 text 字段存储文本消息
-    # date 字段存储消息时间戳，但为 Apple 特定格式
-    # 这里我们简单根据 ROWID 或 date DESC 来取最新消息
+    # message table typically has a text field storing message content
+    # date field stores timestamp in Apple-specific format
+    # Here we simply get the latest message by ROWID or date DESC
     cursor.execute("SELECT text FROM message ORDER BY date DESC LIMIT 1;")
     row = cursor.fetchone()
     
@@ -26,11 +26,11 @@ def get_latest_message_text(db_path):
     return None
 
 def extract_verification_code(text):
-    # 使用正则匹配 4~8 位连续数字
+    # Use regex to match 4-8 consecutive digits
     pattern = r"\b\d{4,8}\b"
     matches = re.findall(pattern, text)
     if matches:
-        # 假设第一个匹配即为所需验证码
+        # Assume first match is the desired verification code
         return matches[0]
     return None
 
@@ -47,13 +47,13 @@ def main():
             code = extract_verification_code(latest_msg)
             if code and code != last_copied_code:
                 copy_to_clipboard(code)
-                print(f"发现新验证码并已复制到剪贴板: {code}")
+                print(f"Found new verification code and copied to clipboard: {code}")
                 last_copied_code = code
         else:
-            print("未找到最新消息或消息内容为空。")
+            print("No latest message found or message content is empty.")
         
-        # 每 10 秒检查一次
-        time.sleep(10)
+        # Check every 10 seconds
+        time.sleep(5)
 
 if __name__ == "__main__":
     main()
